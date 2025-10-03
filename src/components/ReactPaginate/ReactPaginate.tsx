@@ -19,7 +19,8 @@ marginPagesDisplayed={1}
 onPageChange={({ selected }) => setPage(selected + 1)}
 forcePage={page - 1}
 containerClassName={styles.pagination}
-activeClassName={styles.active}
+            activeClassName={styles.active}
+            renderOnZeroPageCount={null}
 nextLabel="→"
 previousLabel="←"
 />

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import SearchBar from "../SearchBar/SearchBar";
@@ -16,7 +16,7 @@ import type { TMDBInterface } from '../../services/movieService';
 
 export default function App() {
     const [query, setQuery] = useState('');
-    const [page, setPage] = useState(1)
+    const [page, setPage] = useState(1);
     const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null)
     const handleSearch = (newQuery: string) => {
         if (!newQuery.trim()) return;
@@ -25,22 +25,24 @@ export default function App() {
         setPage(1);
     }
 
-    const { data, isLoading, isError, isFetching } = useQuery<TMDBInterface>({
+    const { data, isLoading, isError, isFetching, } = useQuery<TMDBInterface>({
         queryKey: ['movies', query, page],
         queryFn: () => fetchMovies(query, page),
-        enabled: !!query,
-        keepPreviousData: true,
+        enabled: query.trim().length > 0,
+        placeholderData: keepPreviousData
+        
     })
 
     const handleSelect = (movie: Movie) => {
         setSelectedMovie(movie);
+        setPage(1);
     }
     const handleCloseModal = () => {
         setSelectedMovie(null);
     }
-    const handlePageChange = ({ selected }: { selected: number }) => {
-        setPage(selected + 1);
-    }
+
+
+    const allPages = data?.total_pages ?? 0
 
     return (
         <>
@@ -49,7 +51,7 @@ export default function App() {
             {(isLoading || isFetching) && <Loader />}
             {isError && !isLoading && <ErrorMessage />}
             {!isLoading && !isError && data && <MovieGrid movies={data.results} onSelect={handleSelect} />}
-            {data && data.total_pages > 1 && (<Pagination totalPages={data.total_pages} page={page} setPage={handlePageChange} />)}
+            {data && allPages > 1 && (<Pagination totalPages={data.total_pages} page={page} setPage={setPage} />)}
             {selectedMovie && (<MovieModal movie={selectedMovie} onClose={handleCloseModal} />)}
         </>
     )
