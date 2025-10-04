@@ -1,6 +1,6 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { useState } from 'react';
-import { Toaster } from 'react-hot-toast';
+import { useEffect, useState } from 'react';
+import { toast, Toaster } from 'react-hot-toast';
 import SearchBar from "../SearchBar/SearchBar";
 import { fetchMovies } from '../../services/movieService';
 import MovieGrid from '../MovieGrid/MovieGrid';
@@ -33,6 +33,12 @@ export default function App() {
         
     })
 
+        useEffect(() => {
+        if (data?.results.length === 0 && !isLoading && !isError) {
+        toast('There is no film matching your request')
+    }
+}, [data, isLoading, isError])
+
     const handleSelect = (movie: Movie) => {
         setSelectedMovie(movie);
         setPage(1);
@@ -51,7 +57,7 @@ export default function App() {
             {(isLoading || isFetching) && <Loader />}
             {isError && !isLoading && <ErrorMessage />}
             {!isLoading && !isError && data && <MovieGrid movies={data.results} onSelect={handleSelect} />}
-            {data && allPages > 1 && (<Pagination totalPages={data.total_pages} page={page} setPage={setPage} />)}
+            {data && allPages > 1 && (<Pagination pageCount={allPages} forcePage={page - 1} onPageChange={({ selected }) => setPage(selected + 1)} />)}
             {selectedMovie && (<MovieModal movie={selectedMovie} onClose={handleCloseModal} />)}
         </>
     )
